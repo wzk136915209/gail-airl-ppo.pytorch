@@ -46,13 +46,16 @@ class PPO(Algorithm):
             hidden_units=units_actor,
             hidden_activation=nn.Tanh()
         ).to(device)
-
+        print('ppo actor', '-'*80)
+        print(self.actor)
         # Critic.
         self.critic = StateFunction(
             state_shape=state_shape,
             hidden_units=units_critic,
             hidden_activation=nn.Tanh()
         ).to(device)
+        print('ppo critic', '-'*80)
+        print(self.critic)
 
         self.optim_actor = Adam(self.actor.parameters(), lr=lr_actor)
         self.optim_critic = Adam(self.critic.parameters(), lr=lr_critic)
@@ -65,21 +68,33 @@ class PPO(Algorithm):
         self.coef_ent = coef_ent
         self.max_grad_norm = max_grad_norm
 
+        self.episode = 0
+        self.reward_train = [0]
+        self.epr = 0
+
+
     def is_update(self, step):
         return step % self.rollout_length == 0
 
-    def step(self, env, state, t, step):
+    def step(self, env, state, t, step, writer=None):
         t += 1
 
         action, log_pi = self.explore(state)
         next_state, reward, done, _ = env.step(action)
+        self.epr += reward
         mask = False if t == env._max_episode_steps else done
-
         self.buffer.append(state, action, reward, mask, log_pi, next_state)
+
 
         if done:
             t = 0
             next_state = env.reset()
+
+            self.reward_train.append(self.reward_train[-1]*0.9 + self.epr*0.1)
+            writer.add_scalar('reward/train', self.reward_train[-1], self.episode)
+            self.episode += 1
+            self.epr = 0
+
 
         return next_state, t
 

@@ -26,6 +26,13 @@ class GAILDiscrim(nn.Module):
         with torch.no_grad():
             return -F.logsigmoid(-self.forward(states, actions))
 
+            # logits = self.forward(states, actions)
+            # prob = F.sigmoid(logits)
+            # prob = prob.clip(1e-6, 1.0)
+            # return -torch.log(prob)
+
+        # -torch.log(F.sigmoid(self.forward(states, actions)).detach().cpu().numpy()
+
 
 class AIRLDiscrim(nn.Module):
 

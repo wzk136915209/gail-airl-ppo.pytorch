@@ -4,7 +4,7 @@ from datetime import datetime
 import torch
 
 from gail_airl_ppo.env import make_env
-from gail_airl_ppo.algo import SAC
+from gail_airl_ppo.algo import SAC, PPO
 from gail_airl_ppo.trainer import Trainer
 
 
@@ -12,16 +12,23 @@ def run(args):
     env = make_env(args.env_id)
     env_test = make_env(args.env_id)
 
-    algo = SAC(
+    # algo = SAC(
+    #     state_shape=env.observation_space.shape,
+    #     action_shape=env.action_space.shape,
+    #     device=torch.device("cuda" if args.cuda else "cpu"),
+    #     seed=args.seed
+    # )
+    algo = PPO(
         state_shape=env.observation_space.shape,
         action_shape=env.action_space.shape,
         device=torch.device("cuda" if args.cuda else "cpu"),
         seed=args.seed
     )
 
+
     time = datetime.now().strftime("%Y%m%d-%H%M")
     log_dir = os.path.join(
-        'logs', args.env_id, 'sac', f'seed{args.seed}-{time}')
+        'logs', args.env_id, 'ppo', f'seed{args.seed}-{time}')
 
     trainer = Trainer(
         env=env,

@@ -31,6 +31,8 @@ class GAIL(PPO):
             hidden_units=units_disc,
             hidden_activation=nn.Tanh()
         ).to(device)
+        print('gail discriminator', '-' * 80)
+        print(self.disc)
 
         self.learning_steps_disc = 0
         self.optim_disc = Adam(self.disc.parameters(), lr=lr_disc)
@@ -70,6 +72,15 @@ class GAIL(PPO):
         loss_pi = -F.logsigmoid(-logits_pi).mean()
         loss_exp = -F.logsigmoid(logits_exp).mean()
         loss_disc = loss_pi + loss_exp
+
+        # Discriminator is to maximize E_{\pi} [log(1 - D)] + E_{exp} [log(D)].
+        # loss_pi = F.sigmoid(logits_pi)
+        # loss_exp = F.sigmoid(logits_exp)
+        # loss_pi_prob = loss_pi.clip(1e-6, 1.0)
+        # loss_exp_prob = loss_exp.clip(1e-6, 1.0)
+        # loss_disc = nn.BCELoss()(
+        #     loss_pi_prob, torch.ones_like(loss_pi_prob)) + nn.BCELoss()(
+        #         loss_exp_prob, torch.zeros_like(loss_exp_prob))
 
         self.optim_disc.zero_grad()
         loss_disc.backward()

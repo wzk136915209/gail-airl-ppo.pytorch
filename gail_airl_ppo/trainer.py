@@ -43,7 +43,7 @@ class Trainer:
 
         for step in range(1, self.num_steps + 1):
             # Pass to the algorithm to update state and episode timestep.
-            state, t = self.algo.step(self.env, state, t, step)
+            state, t = self.algo.step(self.env, state, t, step, self.writer)
 
             # Update the algorithm whenever ready.
             if self.algo.is_update(step):
@@ -60,18 +60,16 @@ class Trainer:
 
     def evaluate(self, step):
         mean_return = 0.0
-
+        episode_return = 0.0
         for _ in range(self.num_eval_episodes):
             state = self.env_test.reset()
-            episode_return = 0.0
             done = False
-
             while (not done):
                 action = self.algo.exploit(state)
                 state, reward, done, _ = self.env_test.step(action)
                 episode_return += reward
 
-            mean_return += episode_return / self.num_eval_episodes
+        mean_return += episode_return / self.num_eval_episodes
 
         self.writer.add_scalar('return/test', mean_return, step)
         print(f'Num steps: {step:<6}   '

@@ -35,12 +35,12 @@ def run(args):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
-    p.add_argument('--weight', type=str, required=True)
+    p.add_argument('--weight', type=str, default='weights/Hopper-v3.pth' )
     p.add_argument('--env_id', type=str, default='Hopper-v3')
     p.add_argument('--buffer_size', type=int, default=10**6)
-    p.add_argument('--std', type=float, default=0.0)
+    p.add_argument('--std', type=float, default=0.001)
     p.add_argument('--p_rand', type=float, default=0.0)
-    p.add_argument('--cuda', action='store_true')
+    p.add_argument('--cuda', type=bool, default='True')
     p.add_argument('--seed', type=int, default=0)
     args = p.parse_args()
     run(args)
