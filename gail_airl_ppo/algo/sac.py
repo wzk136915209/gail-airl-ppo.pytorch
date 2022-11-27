@@ -16,7 +16,7 @@ class SAC(Algorithm):
     def __init__(self, state_shape, action_shape, device, seed, gamma=0.99,
                  batch_size=256, buffer_size=10**6, lr_actor=3e-4,
                  lr_critic=3e-4, lr_alpha=3e-4, units_actor=(256, 256),
-                 units_critic=(256, 256), start_steps=10000, tau=5e-3):
+                 units_critic=(256, 256), start_steps=2000, tau=5e-3):
         super().__init__(state_shape, action_shape, device, seed, gamma)
 
         # Replay buffer.
@@ -84,7 +84,7 @@ class SAC(Algorithm):
         self.epr = 0
 
     def is_update(self, steps):
-        return steps >= min(self.start_steps, self.batch_size)
+        return steps >= max(self.start_steps, self.batch_size)
 
     def step(self, env, state, t, step, writer=None):
         t += 1
