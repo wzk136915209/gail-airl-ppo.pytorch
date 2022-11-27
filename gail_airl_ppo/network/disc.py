@@ -24,12 +24,12 @@ class GAILDiscrim(nn.Module):
     def calculate_reward(self, states, actions):
         # PPO(GAIL) is to maximize E_{\pi} [-log(1 - D)].
         with torch.no_grad():
-            return -F.logsigmoid(-self.forward(states, actions))
+            # return -F.logsigmoid(-self.forward(states, actions))
 
-            # logits = self.forward(states, actions)
-            # prob = F.sigmoid(logits)
-            # prob = prob.clip(1e-6, 1.0)
-            # return -torch.log(prob)
+            logits = self.forward(states, actions)
+            prob = torch.sigmoid(logits)
+            prob = prob.clip(1e-6, 1.0)
+            return -torch.log(prob)
 
         # -torch.log(F.sigmoid(self.forward(states, actions)).detach().cpu().numpy()
 
