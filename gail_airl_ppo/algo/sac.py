@@ -67,10 +67,14 @@ class SAC(Algorithm):
         self.start_steps = start_steps
         self.tau = tau
 
-    def is_update(self, steps):
-        return steps >= max(self.start_steps, self.batch_size)
+        self.episode = 0
+        self.reward_train = [0]
+        self.epr = 0
 
-    def step(self, env, state, t, step):
+    def is_update(self, steps):
+        return steps >= min(self.start_steps, self.batch_size)
+
+    def step(self, env, state, t, step, writer=None):
         t += 1
 
         if step <= self.start_steps:
@@ -79,13 +83,17 @@ class SAC(Algorithm):
             action = self.explore(state)[0]
 
         next_state, reward, done, _ = env.step(action)
+        self.epr += reward
         mask = False if t == env._max_episode_steps else done
-
         self.buffer.append(state, action, reward, mask, next_state)
 
         if done:
             t = 0
             next_state = env.reset()
+            self.reward_train.append(self.reward_train[-1]*0.9 + self.epr*0.1)
+            writer.add_scalar('reward/train', self.reward_train[-1], self.episode)
+            self.episode += 1
+            self.epr = 0
 
         return next_state, t
 
