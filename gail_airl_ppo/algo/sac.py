@@ -32,25 +32,37 @@ class SAC(Algorithm):
             state_shape=state_shape,
             action_shape=action_shape,
             hidden_units=units_actor,
-            hidden_activation=nn.ReLU(inplace=True)
+            hidden_activation=nn.ReLU(inplace=False)
         ).to(device)
+        # self.actor = nn.Sequential(
+        #     nn.Linear(state_shape, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, action_shape)
+        # )
 
         # Critic.
         self.critic = TwinnedStateActionFunction(
             state_shape=state_shape,
             action_shape=action_shape,
             hidden_units=units_critic,
-            hidden_activation=nn.ReLU(inplace=True)
+            hidden_activation=nn.ReLU(inplace=False)
         ).to(device)
         self.critic_target = TwinnedStateActionFunction(
             state_shape=state_shape,
             action_shape=action_shape,
             hidden_units=units_critic,
-            hidden_activation=nn.ReLU(inplace=True)
+            hidden_activation=nn.ReLU(inplace=False)
         ).to(device).eval()
 
         soft_update(self.critic_target, self.critic, 1.0)
         disable_gradient(self.critic_target)
+
+        print('sac critic', '-'*80)
+        print(self.critic)
+        print('sac actor', '-'*80)
+        print(self.actor)
 
         # Entropy coefficient.
         self.alpha = 1.0
@@ -77,10 +89,11 @@ class SAC(Algorithm):
     def step(self, env, state, t, step, writer=None):
         t += 1
 
-        if step <= self.start_steps:
-            action = env.action_space.sample()
-        else:
-            action = self.explore(state)[0]
+        # if step <= self.start_steps:
+        #     action = env.action_space.sample()
+        # else:
+        #     action = self.explore(state)[0]
+        action = self.explore(state)[0]
 
         next_state, reward, done, _ = env.step(action)
         self.epr += reward
@@ -135,14 +148,14 @@ class SAC(Algorithm):
         loss_actor = self.alpha * log_pis.mean() - torch.min(qs1, qs2).mean()
 
         self.optim_actor.zero_grad()
-        loss_actor.backward(retain_graph=False)
+        loss_actor.backward()
         self.optim_actor.step()
 
         entropy = -log_pis.detach_().mean()
         loss_alpha = -self.log_alpha * (self.target_entropy - entropy)
 
         self.optim_alpha.zero_grad()
-        loss_alpha.backward(retain_graph=False)
+        loss_alpha.backward()#
         self.optim_alpha.step()
 
         with torch.no_grad():
@@ -178,7 +191,7 @@ class SACExpert(SAC):
             state_shape=state_shape,
             action_shape=action_shape,
             hidden_units=units_actor,
-            hidden_activation=nn.ReLU(inplace=True)
+            hidden_activation=nn.ReLU(inplace=False)
         ).to(device)
         self.actor.load_state_dict(torch.load(path))
 

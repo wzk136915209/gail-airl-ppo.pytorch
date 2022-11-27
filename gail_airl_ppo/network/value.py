@@ -41,7 +41,7 @@ class StateActionFunction(nn.Module):
 class TwinnedStateActionFunction(nn.Module):
 
     def __init__(self, state_shape, action_shape, hidden_units=(256, 256),
-                 hidden_activation=nn.ReLU(inplace=True)):
+                 hidden_activation=nn.ReLU(inplace=False)):
         super().__init__()
 
         self.net1 = build_mlp(
@@ -58,7 +58,7 @@ class TwinnedStateActionFunction(nn.Module):
         )
 
     def forward(self, states, actions):
-        xs = torch.cat([states, actions], dim=-1)
+        xs = torch.cat([states, actions], dim=1)
         return self.net1(xs), self.net2(xs)
 
     def q1(self, states, actions):
